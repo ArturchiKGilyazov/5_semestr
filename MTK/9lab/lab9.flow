@@ -1,0 +1,281 @@
+import string;
+import lingo/pegcode/driver;
+
+Expr ::= IntConst, Mul, Add,Sub,Div,Neg,Var;
+IntConst: (value: int);
+Mul: (left: Expr, right: Expr);
+Add: (left: Expr, right: Expr);
+Sub:(left: Expr, right: Expr);
+Div:(left: Expr, right: Expr);
+Neg:(value: Expr);
+Var:(name: string);
+Rational(dividend:int, divisor:int);
+
+rational(a:int) ->Rational{
+Rational(a,1);
+}
+
+
+Rational2s(dividend:int, divisor:int){
+i2s(dividend)+"\\"+i2s(divisor);
+}
+RatMul(a:Rational,b:Rational){ 
+    Rational(a.dividend * b.dividend, a.divisor * b.divisor);
+}
+RatDiv(a:Rational,b:Rational){
+    Rational(a.dividend * b.divisor,a.divisor * b.dividend);
+}
+RatSub(a:Rational,b:Rational){
+       Rational(a.dividend * b.divisor - b.dividend * a.divisor,a.divisor* b.divisor);
+}
+RatAdd(a:Rational,b:Rational){
+    Rational(a.dividend * b.divisor + b.dividend * a.divisor,a.divisor * b.divisor);
+}
+RatNeg(a:Rational){
+    RatMul(a,rational(-1));
+}
+Print(expr: Expr) -> string {
+    switch (expr : Expr) {         
+        IntConst(c): i2s(c);
+        Mul(l, r): "(" + Print(l) + "*" + Print(r) + ")";
+        Add(l, r): "(" + Print(l) + "+" + Print(r) + ")";
+        Sub(l,r):"("+ Print(l) + "-" + Print(r) + ")";
+        Div(l, r): "(" + Print(l) + "/" + Print(r) + ")";
+        Neg(v):"(" + "-"+ Print(v) +")";
+        Var(n):" " + n;
+    }
+}
+
+
+Peg_prs(str: string) -> Expr {
+    gram = "#include arr_gram.lingo";
+    parsic(compilePegGrammar(gram), str, defaultPegActions);
+}
+
+maybeOp(f: (?, ??)->???, arg1:Maybe<?>, arg2:Maybe<??>)->Maybe<???>
+{
+    switch (arg1) {
+        None():None();
+        Some(x):
+        switch (arg2) {
+           None():None();
+           Some(y):{    
+              Some(f(x,y));
+           }           
+           
+        }
+    }
+}
+ 
+exprToPoly(expr:Expr)->Div{
+	switch (expr : Expr) {         
+        IntConst(c):Div(IntConst(c),IntConst(1));
+        Mul(l, r):{
+			a1=exprToPoly(l);
+			a2=exprToPoly(r);
+			Div(Mul(a1.left,a2.left),Mul(a1.right,a2.right));
+		}
+
+        Div(l, r): {
+			a1=exprToPoly(l);
+			a2=exprToPoly(r);
+			Div(Mul(a1.left,a2.right),Mul(a1.right,a2.left));
+		}
+
+
+        Add(l, r):{
+			a1=exprToPoly(l);
+			a2=exprToPoly(r);
+			Div(Add(Mul(a1.left,a2.right),Mul(a2.left,a1.right)),Mul(a1.right,a2.right));
+		}
+
+        Sub(l, r):{
+			a1=exprToPoly(l);
+			a2=exprToPoly(r);
+			Div(Sub(Mul(a1.left,a2.right),Mul(a2.left,a1.right)),Mul(a1.right,a2.right));
+			
+		}
+        
+        Neg(v):{
+			a=exprToPoly(v);
+			Div(Neg(a.left),a.right);
+		}
+        Var(n):Div(Var(n),IntConst(1));
+	}
+}
+
+
+simplify(expr:Expr)->Expr
+{
+    switch (expr : Expr) 
+    {         
+        IntConst(c): IntConst(c);
+        Mul(l, r): {
+            al=simplify(l);
+            ar=simplify(r);
+            switch(al){
+                IntConst(c):{
+                    switch(ar){
+                        IntConst(d):{IntConst(c*d);}
+                        default:{
+                            if(c==0){IntConst(0);}
+                            else if(c==1){ar;}
+                            else {Mul(al,ar);}
+                        }
+                    }
+                }
+                default:{
+                    if(ar==IntConst(0)){IntConst(0);}
+                    else if(ar==IntConst(1)){al;}
+                    else{
+                        Mul(al,ar);
+                    }
+                }
+            }
+            
+        }
+        Div(l, r): { 
+            al=simplify(l);
+            ar=simplify(r);  
+            switch(al){
+                IntConst(c):{
+                    switch(ar){
+                        IntConst(d):{IntConst(c/d);}
+                        default:{
+                            if(c==0){IntConst(0);}
+                            else {Div(al,ar)}
+                        }
+                    }
+                }
+                default:{
+                    if(ar==IntConst(1)){al;}
+                    else{
+                        Div(al,ar);
+                    }
+                }
+            }
+        }
+
+
+        Add(l, r): {
+            al=simplify(l);
+            ar=simplify(r);
+            switch(al){
+                IntConst(c):{
+                    switch(ar){
+                        IntConst(d):{IntConst(c+d);}
+                        default:{
+                            if(c==0){ar;}
+                            else {Add(al,ar)}
+                        }
+                    }
+                }
+                default:{
+                    if(ar==IntConst(0)){al;}
+                    else{
+                        Add(al,ar);
+                    }
+                }
+            }
+        }
+
+        Sub(l, r):  {
+            al=simplify(l);
+            ar=simplify(r);
+            switch(al){
+                IntConst(c):{
+                    switch(ar){
+                        IntConst(d):{IntConst(c-d);}
+                        default:{
+                            if(c==0){Neg(ar);}
+                            else {Sub(al,ar)}
+                        }
+                    }
+                }
+                default:{
+                    if(ar==IntConst(0)){al;}
+                    else{
+                        Sub(al,ar);
+                    }
+                }
+            }
+        }
+
+        
+        Neg(v):{
+            a=simplify(v);
+            switch(a){
+                IntConst(c): {
+                    if(c==0){IntConst(0);}
+                    else {IntConst(-c);}
+                }
+                default:Neg(a);
+            }
+            
+        }
+        default: expr;
+
+    }
+}
+
+
+Calc(expr: Expr, value:[Pair<string,Rational>]) -> Maybe<Rational> {
+    switch (expr : Expr) {         
+        IntConst(c): Some(rational(c));
+        Mul(l, r): maybeOp (\x,y->Rational(x.dividend * y.dividend, x.divisor * y.divisor),
+            Calc(l,value),Calc(r,value));
+
+
+        Div(l, r): maybeOp(\x,y->Rational(x.dividend * y.divisor,x.divisor * y.dividend),
+            Calc(l,value) , Calc(r,value));
+
+
+        Add(l, r): maybeOp(\x,y->Rational(x.dividend * y.divisor +
+                            y.dividend *x.divisor,
+                            x.divisor* y.divisor),
+             Calc(l,value), Calc(r,value));
+
+        Sub(l, r): maybeOp(\x,y->Rational(x.dividend * y.divisor -
+                            y.dividend *x.divisor,
+                            x.divisor* y.divisor),
+             Calc(l,value), Calc(r,value));
+
+        
+        Neg(v):maybeOp(\x,y->RatMul(x,y),
+            Calc(v,value),Some(rational(-1)));
+        Var(n):
+            {index=findi(value,\p->p.first==n);
+ 
+                switch (index) {
+                    None():None();
+                    Some(i):Some(value[i].second);
+
+                }
+            }
+    }
+}
+main() {
+    x="x";
+    a="a";
+    value=[Pair(x,Rational(8,2)),Pair(a,Rational(10,5))];
+    expr = Add(Div(Mul(Var(x), Var(x)), Var(a)), Neg(Add(Var(a), IntConst(42)))); 
+    newExpr=exprToPoly(expr);
+    println(Print(expr));
+    println(Print(newExpr));
+    simpleExpr=simplify(newExpr);
+    println(Print(simpleExpr));
+    res=Calc(simpleExpr,value);
+    println(res);
+     switch (res) {
+           None():println("None");
+           Some(y):{   
+               
+               nod=gcd(y.dividend,y.divisor);
+               println(Rational2s(y.dividend/nod,y.divisor/nod));
+           }           
+           
+        }
+
+
+    quit(0);
+}

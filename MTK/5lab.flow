@@ -1,0 +1,20 @@
+import string;
+import ds/tree;
+pairs(i:int, a:[int], m:[int])->[Pair<int,int>]{
+    t=foldi(a, makeTree(), \index, tree, x->setTree(tree,x,arrayPush(getTreeValue(tree,x),index)));
+    map(getTreeArrayValue(t,m-a[i]),\id->Pair(i),id);
+}
+
+indsr(a:[int],i:int,m:int)->[Pair<int,int>]{
+    if(i>=length(a)) []
+    else concat(pairs(i,a,m), indsr(a,i+1,m));
+}
+inds(a:[int],m:int)->[Pair<int,int>]{
+    indsr(a,o,m);
+}
+
+main(){
+    ints=[0,1,2,3,4,5,6];
+    println(inds(ints,6));
+    quit(0);
+}

@@ -1,0 +1,3 @@
+﻿  LU.cpp
+D:\NSU\3course\Vichi\8lab(SLAY)\LU\LU\LU.cpp(97,11): warning C4477: "printf": в строке форматирования "%f" требуется аргумент типа "double", но вариативный аргумент "1" имеет тип "int"
+  LU.vcxproj -> D:\NSU\3course\Vichi\8lab(SLAY)\LU\Debug\LU.exe

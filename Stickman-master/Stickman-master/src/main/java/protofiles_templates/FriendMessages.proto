@@ -1,0 +1,50 @@
+syntax = "proto3";
+package proto_files;
+
+option java_outer_classname = "FriendMessages";
+
+message friend{
+  int32 id = 1;
+  string name = 2;
+  int32 trophies = 3;
+}
+
+message FindFriendsRequest{
+  int32 user_id = 1;
+  string strForSearch = 2; //Передается то что мы ввели в строке поиска. либо имя игрока, либо его game-idшник
+}
+message FindFriendsResponse{
+  repeated friend friends = 1;
+}
+/*Посылаем из окна добалвения друзей запрос на добавление друга*/
+message MakeFriendsRequest{
+  int32 self_id = 1;
+  int32 friend_id = 2;
+}
+/*Сервер посылает потенциальному другу, когда тот заходит в игру*/
+message ConfirmationFriendRequest{
+  friend friend = 1;
+}
+enum ConfirmFriendStatus{
+  ACCEPT = 0;
+  DISMISS = 1;
+}
+/*Друг послыает согласие на дружбу или отказ на сервер*/
+message ConfirmationFriendResponse{
+  int32 self_id = 1;
+  int32 confirm_friend_id = 2;
+  int32 ConfirmFriendStatus = 3;
+}
+/*Запрос на удаление друга к серверу*/
+message RemoveFriendRequest{
+}
+
+/*посылается либо принудительно(типа потянуть вверх или отдельная кнопка), либо при первой загрузке страницы с друзьями*/
+message UpdateFriendsListRequest{
+  int32 self_id = 1;
+}
+
+/*Посылается сервером если мы удалили друга, либо как как ответ на запрос обновления друзей*/
+message UpdateFriendsListResponse{
+  repeated friend friends = 1;
+}

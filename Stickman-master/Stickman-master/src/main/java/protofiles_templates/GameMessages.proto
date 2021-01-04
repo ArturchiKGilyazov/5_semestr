@@ -1,0 +1,94 @@
+syntax = "proto3";
+package proto_files;
+
+option java_outer_classname = "GameMessages";
+
+message GameSettings{
+  int32 Gravity = 1;
+  int32 Speed = 2;
+  int32 Damage = 3;
+  int32 Bounce = 4;
+}
+
+message Game{
+  int32 game_id = 1;
+}
+
+message Player{
+  int32 id = 1;
+  string name = 2;
+  PlayerStatus PlayerStatus = 3;
+  int32 PlayerHealth = 4;
+  PlayerPosition PlayerPosition = 5;
+  WeaponPosition WeaponPosition = 6;
+}
+/*Клиент отправляет серверу сообщения(ChangePlayerPosition) об изменении своей позиции.
+* Сервер отправляет клиентам сообщения updateGame раз в n-кол-во времени, содержащие суммарное обновление по игрокам.
+* updateGame содержит в себе состояние игры (статус, игрового поля, позиций игроков, здоровья игроков, состояния(вышел, жив, умер))
+* на текущий момент.
+*/
+message StartGameRequest{
+    int32 self_id = 1;
+    int32 room_id = 2;
+}
+
+message StartGameResponse{
+  int32 game_id = 1;
+  GameSettings GameSettings = 2;
+  UpdatePlayers UpdatePlayers = 3;
+}
+
+message Point{
+  float x = 1;
+  float y = 2;
+}
+enum GameStatus{
+  READY = 0;
+  ACTIVE = 1;
+  END = 2;
+}
+
+enum PlayerStatus{
+  DISCONNECT = 0;
+  WIN = 1;
+  DIED = 2;
+  ALIVE = 3;
+}
+
+message UpdateGame{
+  GameStatus GameStatus = 1;
+  UpdatePlayers UpdatePlayers = 2;
+}
+
+message UpdatePlayers{
+  repeated UpdatePlayer UpdatePlayer = 1;
+}
+
+message UpdatePlayer{
+  int32 player_id = 1;
+  int32 PlayerHealth = 2;
+  PlayerStatus PlayerStatus = 3;
+  PlayerPosition PlayerPosition = 4;
+  WeaponPosition WeaponPosition = 5;
+}
+
+message ChangePlayerPosition{
+  int32  player_id = 1;
+  int32 game_id = 2;
+  PlayerPosition newPlayerPosition = 3;
+}
+
+message PlayerPosition{
+  Point headPos = 1;
+  Point leftHandPos = 2;
+  Point rightHandPos = 3;
+  Point leftFootPos = 4;
+  Point rightFootPos = 5;
+  Point shouldersPos = 6;
+  Point groinPos = 7;
+}
+
+message WeaponPosition{
+  //TODO type and left or right hand
+}
+

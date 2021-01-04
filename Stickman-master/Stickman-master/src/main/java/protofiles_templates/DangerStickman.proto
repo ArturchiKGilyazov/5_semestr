@@ -1,0 +1,85 @@
+syntax = "proto3";
+package proto_files;
+
+import "FriendMessages.proto";
+import "RoomMessages.proto";
+import "UserMessages.proto";
+import "LobbyMessages.proto";
+import "GameMessages.proto";
+
+//option java_outer_classname = "PacketWrapper";
+
+message PacketWrapper{
+
+    message PingMsg{}
+
+    message UserWrapper{
+        oneof Type{
+            /*Отправляем при обновлении user'a - например, после окончания игры. Ошибка: Юзер не онлайн(NoSuchOnlineUserException) */
+            UpdateUserRequest updateUserRequest = 1;
+            /*Отправляем про входе.Ошибка: */
+            LoadUserRequest loadUserRequest = 2;
+            /*Содержит в себе объект юзера*/
+            UserResponse userResponse = 3;
+        }
+    }
+
+    message FriendWrapper{
+        oneof Type{
+            FindFriendsRequest findFriendsRequest = 1;
+            FindFriendsResponse findFriendsResponse = 2;
+            MakeFriendsRequest makeFriendsRequest = 3;//Если такого юзера не существует, то игнорируем это запрос
+            ConfirmationFriendRequest ConfirmationFriendsRequest = 4;
+            ConfirmationFriendResponse ConfirmationFriendResponse = 5;
+            RemoveFriendRequest removeFriendRequest = 6;
+            UpdateFriendsListRequest updateFriendsListRequest = 7;
+            UpdateFriendsListResponse updateFriendsListResponse = 8;
+        }
+    }
+
+    message LobbyWrapper{
+        oneof Type{
+            UpdateRoomsRequest updateRoomsRequest = 1;
+            UpdateRoomsResponse updateRoomsResponse = 2;
+        }
+    }
+
+    message RoomWrapper{
+        oneof Type{
+            CreateNewRoomRequest createNewRoomRequest = 1;
+            CreateNewRoomResponse createNewRoomResponse = 2;
+            UpdateRoom updateRoom = 3;
+            AppendToRoomRequest appendToRoomRequest = 4;
+            AppendToRoomResponse appendToRoomResponse = 5;
+            ExitFromRoomRequest exitFromRoomRequest = 6;
+            ExitFromRoomResponse exitFromRoomResponse = 9;
+            RandomRoomRequest RandomRoomRequest = 7;
+            RandomRoomResponse RandomRoomResponse = 8;
+        }
+    }
+
+    message GameWrapper{
+        oneof Type{
+            StartGameRequest startGameRequest = 1;
+            StartGameResponse startGameResponse = 2;
+            UpdateGame updateGame = 3;
+            UpdatePlayers updatePlayers = 4;
+            ChangePlayerPosition changePlayerPosition = 5;
+        }
+    }
+
+
+    message ErrorWrapper{
+
+    }
+
+    oneof Type{
+        FriendWrapper friend = 1;
+        UserWrapper user = 2;
+        LobbyWrapper lobby = 3;
+        RoomWrapper room = 4;
+        GameWrapper game = 5;
+
+        PingMsg ping = 15;
+    }
+}

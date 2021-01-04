@@ -1,0 +1,17 @@
+syntax = "proto3";
+package proto_files;
+
+option java_outer_classname = "LobbyMessages";
+
+message LiteRoom{
+  int32 room_id = 1;
+  string room_name = 2;
+  int32 count_users = 3;
+}
+
+message UpdateRoomsRequest{
+}
+
+message UpdateRoomsResponse{
+  repeated LiteRoom liteRoom = 1;
+}

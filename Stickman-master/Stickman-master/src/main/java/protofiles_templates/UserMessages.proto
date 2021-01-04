@@ -1,0 +1,24 @@
+syntax = "proto3";
+package proto_files;
+
+option java_outer_classname = "UserMessages";
+
+message user{
+  int32 id = 1;
+  string name = 2;
+  int32 money = 3;
+  int32 trophies = 4;
+  repeated int32 skins = 5;
+}
+/*Отправляем когда у нас уже есть игровой Id и мы хотим обновить юзера*/
+message UpdateUserRequest{
+  int32 user_id = 1;
+}
+/*Мы отправляем при первом входе в игру*/
+message LoadUserRequest{
+  string android_id = 1;
+}
+/* */
+message UserResponse{
+  user user = 1;
+}

@@ -1,0 +1,86 @@
+syntax = "proto3";
+package proto_files;
+
+option java_outer_classname = "RoomMessages";
+
+message PlayerInRoom{
+    int32 id = 1;
+    string name = 2;
+    int32 current_skin = 3;
+    //TODO
+}
+
+message Room{
+    int32 admin = 1;
+    repeated PlayerInRoom player = 3;
+    RoomSettings room_settings = 2;
+}
+
+enum StatusRoom{
+    B = 0;
+    /*TODO write all possible status*/
+}
+
+message RoomSettings{
+    int32 Gravity = 1;
+    int32 Speed = 2;
+    int32 Damage = 3;
+    int32 Bounce = 4;
+}
+
+
+/*Запрос на сервер на создание новой комнаты с настройками RoomSettings(их нельзя поменять после создания), от игрока с id. Игрок id становится админом комнаты*/
+/*Админ комнаты - игрок, который может начать игру, забанить других игроков*/
+/*Если админ выходит из комнаты, то роль админа передается одному из игроков, находящихся в комнате*/
+/*Игроки могут присоединяться и выходить из игровой комнаты, если игроков в комнате не осталось комната удаляется*/
+/*В комнате отображаются текущие настройки, текущие игроки*/
+message CreateNewRoomRequest{
+    int32 id = 1;//??
+}
+
+message ChangeSettingsRequest{
+    int32 room_id = 1;
+    RoomSettings room_settings = 2;
+}
+
+/*Если игрок хочет присоедениться к уже существующей комнате, то он отправляет запрос appendToRoomRequest, в случае удачи сервер отсылает
+* (updateRoom) всем игрокам информацию о новом игроке. игроку, который присоединился отсылает appendToRoomResponse с настройками комнаты и игроками
+* в ней, иначе отслыает игроку, который пытается присоединиться сообщение об ошибке.*/
+message CreateNewRoomResponse{
+    StatusRoom status_room = 1;
+}
+
+/*Игрок может покинуть комнату в 2 случаях: в случае ошибки(обрабатывается отдельно) или по своему желанию(exitFromRoom).
+* Если игрок покинул комнату, то мы сообщаем остальным игрокам (updateRoom) об этом.
+*/
+/*Начало игры. Админ отправляет серверу запрос на начало игры(StartGameRequest). Сервер отправляет все игрокам(StartGame)
+* о начале игры*/
+message UpdateRoom{
+    Room room = 1;//??Точно ли room или отдельное сообщение
+}
+
+message AppendToRoomRequest{
+    int32 id = 1;
+    int32 id_room = 2;
+}
+
+message AppendToRoomResponse{
+    Room room = 1;
+}
+
+message ExitFromRoomRequest{
+
+}
+
+message ExitFromRoomResponse{
+
+}
+
+/*TODO optional*/
+message RandomRoomRequest{//also append to room, but if there are no available rooms->get error
+    int32 id = 1;
+}
+
+message RandomRoomResponse{
+    Room room = 1;
+}
